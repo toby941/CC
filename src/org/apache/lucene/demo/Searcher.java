@@ -6,14 +6,14 @@ package org.apache.lucene.demo;
 import java.io.File;
 import java.util.Date;
 
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopScoreDocCollector;
-import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.Version;
 
 /**
@@ -23,8 +23,8 @@ import org.apache.lucene.util.Version;
  */
 public class Searcher {
     private static String INDEX_DIR = "D:\\test\\index\\";// 索引所在的路径
-    private static String KEYWORD = "玄德";// 关键词
-    private static int TOP_NUM = 100;// 显示前100条结果
+    private static String KEYWORD = "main";// 关键词
+    private static int TOP_NUM = 2;// 显示前100条结果
 
     public static void main(String[] args) throws Exception {
         File indexDir = new File(INDEX_DIR);
@@ -42,11 +42,10 @@ public class Searcher {
      * @throws Exception
      */
     public static void search(File indexDir, String q) throws Exception {
-        IndexSearcher is = new IndexSearcher(FSDirectory.open(indexDir), true);// read-only
+        IndexSearcher is = new IndexSearcher(new SimpleFSDirectory(indexDir));// read-only
         String field = "contents";
 
-        QueryParser parser =
-                new QueryParser(Version.LUCENE_CURRENT, field, new StandardAnalyzer(Version.LUCENE_CURRENT));// 有变化的地方
+        QueryParser parser = new QueryParser(Version.LUCENE_34, field, new WhitespaceAnalyzer(Version.LUCENE_34));// 有变化的地方
         Query query = parser.parse(q);
 
         TopScoreDocCollector collector = TopScoreDocCollector.create(TOP_NUM, false);// 有变化的地方
@@ -65,5 +64,7 @@ public class Searcher {
 
         System.out.println("Found " + collector.getTotalHits() + " document(s) (in " + (end - start)
                 + " milliseconds) that matched query '" + q + "':");
+
     }
+
 }

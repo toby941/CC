@@ -8,11 +8,13 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Date;
 
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.Version;
 
 /**
@@ -45,11 +47,13 @@ public class Indexer {
         if (!dataDir.exists() || !dataDir.isDirectory()) {
             throw new IOException(dataDir + " does not exist or is not a directory");
         }
-
-        IndexWriter writer =
-                new IndexWriter(FSDirectory.open(indexDir), new StandardAnalyzer(Version.LUCENE_CURRENT), true,
-                        IndexWriter.MaxFieldLength.LIMITED);// 有变化的地方
-
+        //
+        // IndexWriter writer =
+        // new IndexWriter(FSDirectory.open(indexDir), new StandardAnalyzer(Version.LUCENE_CURRENT), true,
+        // IndexWriter.MaxFieldLength.LIMITED);// 有变化的地方
+        IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_34, new WhitespaceAnalyzer(Version.LUCENE_34));
+        Directory directory = new SimpleFSDirectory(indexDir);
+        IndexWriter writer = new IndexWriter(directory, config);
         indexDirectory(writer, dataDir);
         int numIndexed = writer.numDocs();
         writer.optimize();
@@ -95,7 +99,7 @@ public class Indexer {
         System.out.println("Indexing " + f.getCanonicalPath());
         Document doc = new Document();
         doc.add(new Field("contents", new FileReader(f)));// 有变化的地方
-        doc.add(new Field("filename", f.getCanonicalPath(), Field.Store.YES, Field.Index.ANALYZED));// 有变化的地方
+        doc.add(new Field("filename", f.getCanonicalPath(), Field.Store.YES, Field.Index.ANALYZED_NO_NORMS));// 有变化的地方
 
         writer.addDocument(doc);
     }
